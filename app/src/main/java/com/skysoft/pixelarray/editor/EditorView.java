@@ -14,5 +14,6 @@ public class EditorView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 		//OKAY
+		// DO YOU SEE THAT COMMENT?
     }
 }
