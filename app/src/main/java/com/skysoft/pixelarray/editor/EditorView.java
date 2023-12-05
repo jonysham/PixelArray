@@ -13,6 +13,6 @@ public class EditorView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        
+        //test
     }
 }
