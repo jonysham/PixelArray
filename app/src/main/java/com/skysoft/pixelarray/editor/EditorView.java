@@ -13,7 +13,7 @@ public class EditorView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-		//OKAY
+		// its other comment
 		// DO YOU SEE THAT COMMENT?
         //OH YES, I SEE YOU COMMENT!
 		// HOW TO WEATHER IN YOUR CITY?
