@@ -8,48 +8,132 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.Paint;
 import android.graphics.Color;
+import android.widget.FrameLayout;
+import android.view.ViewGroup;
+import android.view.Gravity;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.graphics.Path;
+import java.util.List;
+import java.util.ArrayList;
 
-public class EditorView extends View {
+public class EditorView extends FrameLayout {
+    private int width = 16;
+    private int height = 16;
+    private float scale;
+    
+    private Paint paint;
     private Bitmap bitmap;
     private BitmapDrawable drawable;
     private Canvas myCanvas;
-    private Paint paint;
+    private CanvasView canvasView;
     
     public EditorView(Context context, AttributeSet attrs) {
         super(context, attrs);
         
-        //создание пустой битмапки
-        bitmap = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888);
-        //создание дровабла из битмапа, ну думаю понятно итак
-        drawable = new BitmapDrawable(getResources(), bitmap);
-        drawable.setFilterBitmap(false);
-        
-        //собственный канвас должен иметь битмап
-        //на котором собственно и рисует холст
-        //и этот битмап в последствии будет сохраняться в файл
-        myCanvas = new Canvas(bitmap);
+        setWillNotDraw(false);
+        setClickable(true);
         
         paint = new Paint();
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        drawable = new BitmapDrawable(getResources(), bitmap);
+        drawable.setFilterBitmap(false);
+        myCanvas = new Canvas(bitmap);
+        
+        canvasView = new CanvasView(context);
+        canvasView.setLayoutParams(new ViewGroup.LayoutParams(width, height));
+        addView(canvasView);
+        
+        post(new Runnable() {
+            @Override
+            public void run() {
+                scale = getWidth() / width;
+                canvasView.setScaleX(scale);
+                canvasView.setScaleY(scale);
+                ((FrameLayout.LayoutParams) canvasView.getLayoutParams()).gravity = Gravity.CENTER;
+                canvasView.requestLayout();
+            }
+        });
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        //заливка фона
-		myCanvas.drawARGB(255, 255, 255, 255);
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        scrollGestureDetector.onTouchEvent(event);
+        scaleGestureDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
+    }
+    
+    private GestureDetector scrollGestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            canvasView.setX(canvasView.getX() - distanceX);
+            canvasView.setY(canvasView.getY() - distanceY);
+            invalidate();
+            return true;
+        }
+    });
         
-        //рисование тестовых точек на своем холсте
-        paint.setColor(Color.RED);
-        myCanvas.drawPoint(0, 0, paint);
-        paint.setColor(Color.GREEN);
-        myCanvas.drawPoint(7, 7, paint);
-        paint.setColor(Color.BLUE);
-        myCanvas.drawPoint(15, 15, paint);
+    private ScaleGestureDetector scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            scale *= detector.getScaleFactor();
+            canvasView.setScaleX(scale);
+            canvasView.setScaleY(scale);
+            invalidate();
+            return true;
+        }
+    });
+    
+    private class CanvasView extends View {
+        private List<Path> paths;
         
-        //рисование нашего drawable 
-        //на основном канвасе по центру экрана
-        int centerX = getWidth()/2;
-        int centerY = getHeight()/2;
-        drawable.setBounds(centerX -getWidth()/2, centerY - getWidth()/2, centerX + getWidth()/2, centerY + getWidth()/2);
-        drawable.draw(canvas);
+        private CanvasView(Context context) {
+            super(context);
+            setClickable(true);
+            paths = new ArrayList<>();
+        }
+
+        Path next;
+        float lastX;
+        float lastY;
+        
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            /*if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                next = new Path();
+                paths.add(next);
+                next.moveTo(event.getX(), event.getY());
+                next.lineTo(event.getX(), event.getY());
+            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                next.lineTo(event.getX(), event.getY());
+                lastX = event.getX();
+                lastY = event.getY();
+            }
+            */
+            invalidate();
+            return super.onTouchEvent(event);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            
+            myCanvas.drawARGB(255, 255, 255, 255);
+            paint.setARGB(255, 255, 0, 0);
+            
+            for (Path p : paths) {
+                myCanvas.drawPath(p, paint);
+            }
+            
+            drawable.setBounds(0, 0, getWidth(), getHeight());
+            drawable.draw(canvas);
+        }
     }
 }
