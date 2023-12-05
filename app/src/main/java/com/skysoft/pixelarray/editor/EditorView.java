@@ -38,12 +38,10 @@ public class EditorView extends View {
 		myCanvas.drawARGB(255, 255, 255, 255);
         
         //рисование тестовых точек на своем холсте
-        paint.setColor(Color.RED);
+        paint.setColor(255);
         myCanvas.drawPoint(0, 0, paint);
-        paint.setColor(Color.GREEN);
-        myCanvas.drawPoint(7, 7, paint);
-        paint.setColor(Color.BLUE);
-        myCanvas.drawPoint(15, 15, paint);
+        
+        rect(0,0,16,16);
         
         //рисование нашего drawable 
         //на основном канвасе по центру экрана
@@ -51,5 +49,20 @@ public class EditorView extends View {
         int centerY = getHeight()/2;
         drawable.setBounds(centerX -getWidth()/2, centerY - getWidth()/2, centerX + getWidth()/2, centerY + getWidth()/2);
         drawable.draw(canvas);
+    }
+    
+    void rect(int x, int y, int w, int h) {
+        
+        for(int i = x; i <= x+w; i++) {
+            for(int j = y; j <= y+h; j++) {
+                paint.setColor(Color.argb(255,convert(i,x,x+w,0,255), 0, convert(i,x+w,x,0,255)));
+            myCanvas.drawPoint(i,j, paint);
+            }
+        }
+    }
+    
+    public float convert(float value, float vStart, float vEnd, float toStart, float toEnd)
+    {
+        return toStart + (toEnd-toStart) * ((value - vStart) / (vEnd-vStart));
     }
 }
