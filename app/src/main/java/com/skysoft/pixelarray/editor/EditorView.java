@@ -106,17 +106,25 @@ public class EditorView extends FrameLayout {
         
         @Override
         public boolean onTouchEvent(MotionEvent event) {
-            /*if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                next = new Path();
-                paths.add(next);
-                next.moveTo(event.getX(), event.getY());
-                next.lineTo(event.getX(), event.getY());
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                next.lineTo(event.getX(), event.getY());
-                lastX = event.getX();
-                lastY = event.getY();
+            float x = event.getX();
+            float y = event.getY();
+            
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN: {
+                    next = new Path();
+                    next.moveTo(x, y);
+                    next.lineTo(x, y);
+                    paths.add(next);
+                    break;
+                }
+                
+                case MotionEvent.ACTION_MOVE: {
+                    next.lineTo(x, y);
+                }
             }
-            */
+            
+            lastX = x;
+            lastY = y;
             invalidate();
             return super.onTouchEvent(event);
         }
@@ -126,7 +134,9 @@ public class EditorView extends FrameLayout {
             super.onDraw(canvas);
             
             myCanvas.drawARGB(255, 255, 255, 255);
-            paint.setARGB(255, 255, 0, 0);
+            paint.setARGB(255, 0, 0, 0);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(1);
             
             for (Path p : paths) {
                 myCanvas.drawPath(p, paint);
