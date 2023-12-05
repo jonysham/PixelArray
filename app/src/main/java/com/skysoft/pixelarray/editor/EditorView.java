@@ -6,7 +6,8 @@ import android.util.AttributeSet;
 import android.graphics.Canvas;
 
 public class EditorView extends View {
-    // давай грузись пидрила сучка
+    // давай грузись пидрила сучка блять нахуй блять
+
     public EditorView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
