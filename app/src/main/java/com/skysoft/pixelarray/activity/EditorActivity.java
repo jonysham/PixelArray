@@ -2,15 +2,20 @@ package com.skysoft.pixelarray.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-
-import com.skysoft.pixelarray.R;
-import com.skysoft.pixelarray.editor.EditorView;
+import android.os.Handler;
 import android.widget.ImageButton;
 import android.view.View;
+
+import com.skysoft.pixelarray.editor.EditorView;
 import com.skysoft.pixelarray.editor.enum.EditorMode;
+import com.skysoft.pixelarray.R;
 
 public class EditorActivity extends AppCompatActivity implements View.OnClickListener {
     private EditorView editorView;
+    
+    private ImageButton undo;
+    private ImageButton redo;
+    private Handler undoRedoUpdate;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,8 +24,25 @@ public class EditorActivity extends AppCompatActivity implements View.OnClickLis
 		
         editorView = findViewById(R.id.editor);
         
-        ImageButton btnDrawErase = findViewById(R.id.btn_drawErase);
-        btnDrawErase.setOnClickListener(this);
+        ImageButton drawErase = findViewById(R.id.btn_drawErase);
+        drawErase.setOnClickListener(this);
+        
+        undo = findViewById(R.id.btn_undo);
+        undo.setOnClickListener(this);
+        
+        redo = findViewById(R.id.btn_redo);
+        redo.setOnClickListener(this);
+        
+        undoRedoUpdate = new Handler();
+        undoRedoUpdate.post(new Runnable(){ 
+        
+            @Override
+            public void run() {
+                undo.setEnabled(editorView.canUndo());
+                redo.setEnabled(editorView.canRedo());
+                undoRedoUpdate.postDelayed(this, 100);
+            }
+        });
     }
 
     @Override
@@ -29,13 +51,18 @@ public class EditorActivity extends AppCompatActivity implements View.OnClickLis
         
         switch (v.getId()) {
             case R.id.btn_drawErase: {
-                if (editorView.getEditorMode() == EditorMode.DRAW) {
-                    editorView.setEditorMode(EditorMode.ERASE);
-                    btn.setImageResource(R.drawable.ic_eraser);
-                } else {
-                    editorView.setEditorMode(EditorMode.DRAW);
-                    btn.setImageResource(R.drawable.ic_brush);
-                }
+                editorView.setErase(!editorView.isErase());
+                btn.setImageResource(editorView.isErase() ? R.drawable.ic_eraser : R.drawable.ic_brush);
+                break;
+            }
+            
+            case R.id.btn_undo: {
+                editorView.undo();
+                break;
+            }
+            
+            case R.id.btn_redo: {
+                editorView.redo();
             }
         }
     }
