@@ -16,29 +16,41 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.graphics.Path;
+import android.graphics.Xfermode;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.PorterDuff;
 
 import java.util.List;
 import java.util.ArrayList;
 
 import com.skysoft.pixelarray.editor.model.PathWrapper;
+import com.skysoft.pixelarray.editor.enum.EditorMode;
+import com.skysoft.pixelarray.R;
 
 public class EditorView extends FrameLayout {
-    private int width = 128;
-    private int height = 128;
+    static final String TAG = "EditorView";
+    
+    private int width = 32;
+    private int height = 32;
     private int brushSize = 1;
+    private int color = Color.BLACK;
     private float scale;
    
     private Paint paint;
     private Bitmap bitmap;
     private BitmapDrawable drawable;
+    private AlphaDrawable alphaDrawable;
+    
     private Canvas myCanvas;
     private CanvasView canvasView;
+    
+    private EditorMode editorMode;
     
     public EditorView(Context context, AttributeSet attrs) {
         super(context, attrs);
         
-        setWillNotDraw(false);
-        setClickable(true);
+        alphaDrawable = new AlphaDrawable();
+        alphaDrawable.setColors(Color.rgb(160, 160, 160), Color.rgb(120, 120, 120));
         
         paint = new Paint();
         bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
@@ -53,18 +65,17 @@ public class EditorView extends FrameLayout {
         post(new Runnable() {
             @Override
             public void run() {
-                scale = getWidth() / width;
+                scale = (float) getWidth() / width;
                 canvasView.setScaleX(scale);
                 canvasView.setScaleY(scale);
                 ((FrameLayout.LayoutParams) canvasView.getLayoutParams()).gravity = Gravity.CENTER;
                 canvasView.requestLayout();
             }
         });
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
+        
+        setWillNotDraw(false);
+        setClickable(true);
+        setEditorMode(EditorMode.DRAW);
     }
 
     @Override
@@ -97,6 +108,7 @@ public class EditorView extends FrameLayout {
     
     private class CanvasView extends View {
         private List<PathWrapper> paths;
+        private PathWrapper nextPath;
         
         private CanvasView(Context context) {
             super(context);
@@ -106,7 +118,6 @@ public class EditorView extends FrameLayout {
 
         float startX;
         float startY;
-        PathWrapper nextPath;
         
         @Override
         public boolean onTouchEvent(MotionEvent event) {
@@ -117,7 +128,8 @@ public class EditorView extends FrameLayout {
                 case MotionEvent.ACTION_DOWN: {
                     startX = x;
                     startY = y;
-                    nextPath = new PathWrapper(new Path(), brushSize, Color.BLACK, true);
+                    nextPath = new PathWrapper(new Path(), brushSize, color, true);
+                    nextPath.setIsErase(editorMode == EditorMode.ERASE);
                     nextPath.getPath().moveTo(x, y);
                     paths.add(nextPath);
                     break;
@@ -141,12 +153,24 @@ public class EditorView extends FrameLayout {
         }
 
         @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            alphaDrawable.setBounds(0, 0, w, h);
+        }
+
+        @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
             
-            myCanvas.drawARGB(255, 255, 255, 255);
+            alphaDrawable.draw(canvas);
             
             for (PathWrapper path : paths) {
+                if (path.isErase()) {
+                    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                } else {
+                    paint.setXfermode(null);
+                }
+                
                 paint.setColor(path.getColor());
                 paint.setStyle(path.isStroke() ? Paint.Style.STROKE : Paint.Style.FILL);
                 paint.setStrokeWidth(path.getWidth());
@@ -156,5 +180,13 @@ public class EditorView extends FrameLayout {
             drawable.setBounds(0, 0, getWidth(), getHeight());
             drawable.draw(canvas);
         }
+    }
+    
+    public void setEditorMode(EditorMode editorMode) {
+        this.editorMode = editorMode;
+    }
+    
+    public EditorMode getEditorMode() {
+        return editorMode;
     }
 }
