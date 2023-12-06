@@ -8,56 +8,144 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.Paint;
 import android.graphics.Color;
+import android.widget.FrameLayout;
+import android.view.ViewGroup;
+import android.view.Gravity;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.graphics.Path;
+import java.util.List;
+import java.util.ArrayList;
 
-public class EditorView extends View {
+public class EditorView extends FrameLayout {
+    private int width = 128;
+    private int height = 128;
+    private float scale;
+    
+    private Paint paint;
     private Bitmap bitmap;
     private BitmapDrawable drawable;
     private Canvas myCanvas;
-    private Paint paint;
+    private CanvasView canvasView;
     
     public EditorView(Context context, AttributeSet attrs) {
         super(context, attrs);
         
-        //создание пустой битмапки
-        bitmap = Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888);
-        //создание дровабла из битмапа, ну думаю понятно итак
-        drawable = new BitmapDrawable(getResources(), bitmap);
-        drawable.setFilterBitmap(false);
-        
-        //собственный канвас должен иметь битмап
-        //на котором собственно и рисует холст
-        //и этот битмап в последствии будет сохраняться в файл
-        myCanvas = new Canvas(bitmap);
+        setWillNotDraw(false);
+        setClickable(true);
         
         paint = new Paint();
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        drawable = new BitmapDrawable(getResources(), bitmap);
+        drawable.setFilterBitmap(false);
+        myCanvas = new Canvas(bitmap);
+        
+        canvasView = new CanvasView(context);
+        canvasView.setLayoutParams(new ViewGroup.LayoutParams(width, height));
+        addView(canvasView);
+        
+        post(new Runnable() {
+            @Override
+            public void run() {
+                scale = getWidth() / width;
+                canvasView.setScaleX(scale);
+                canvasView.setScaleY(scale);
+                ((FrameLayout.LayoutParams) canvasView.getLayoutParams()).gravity = Gravity.CENTER;
+                canvasView.requestLayout();
+            }
+        });
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        //заливка фона
-		myCanvas.drawARGB(255, 255, 255, 255);
-        
-        //рисование тестовых точек на своем холсте
-        paint.setColor(255);
-        myCanvas.drawPoint(0, 0, paint);
-        
-        rect(0,0,16,16);
-        
-        //рисование нашего drawable 
-        //на основном канвасе по центру экрана
-        int centerX = getWidth()/2;
-        int centerY = getHeight()/2;
-        drawable.setBounds(centerX -getWidth()/2, centerY - getWidth()/2, centerX + getWidth()/2, centerY + getWidth()/2);
-        drawable.draw(canvas);
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        scrollGestureDetector.onTouchEvent(event);
+        scaleGestureDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
     
-    void rect(int x, int y, int w, int h) {
+    private GestureDetector scrollGestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            canvasView.setX(canvasView.getX() - distanceX);
+            canvasView.setY(canvasView.getY() - distanceY);
+            invalidate();
+            return true;
+        }
+    });
         
-        for(int i = x; i <= x+w; i++) {
-            for(int j = y; j <= y+h; j++) {
-                paint.setColor(Color.argb(255,convert(i,x,x+w,0,255), 0, convert(i,x+w,x,0,255)));
-            myCanvas.drawPoint(i,j, paint);
+    private ScaleGestureDetector scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            scale *= detector.getScaleFactor();
+            canvasView.setScaleX(scale);
+            canvasView.setScaleY(scale);
+            invalidate();
+            return true;
+        }
+    });
+    
+    private class CanvasView extends View {
+        private List<Path> paths;
+
+        private CanvasView(Context context) {
+            super(context);
+            setClickable(true);
+            paths = new ArrayList<>();
+        }
+
+        Path next;
+        float lastX;
+        float lastY;
+        
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            float x = event.getX();
+            float y = event.getY();
+            
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN: {
+                    next = new Path();
+                    
+                    next.moveTo(x, y);
+                    next.lineTo(x, y);
+                    paths.add(next);
+                    
+                    break;
+                }
+                
+                case MotionEvent.ACTION_MOVE: {
+                    next.lineTo(x, y);
+                }
             }
+            
+            lastX = x;
+            lastY = y;
+            invalidate();
+            return super.onTouchEvent(event);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            
+            myCanvas.drawARGB(255, 255, 255, 255);
+            paint.setARGB(255, 0, 0, 0);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(1);
+            
+            for (Path p : paths) {
+                myCanvas.drawPath(p, paint);
+            }
+            
+            drawable.setBounds(0, 0, getWidth(), getHeight());
+            drawable.draw(canvas);
         }
     }
     
@@ -65,4 +153,5 @@ public class EditorView extends View {
     {
         return toStart + (toEnd-toStart) * ((value - vStart) / (vEnd-vStart));
     }
+    
 }
