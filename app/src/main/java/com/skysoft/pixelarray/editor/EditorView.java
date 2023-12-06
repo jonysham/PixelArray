@@ -16,14 +16,18 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.graphics.Path;
+
 import java.util.List;
 import java.util.ArrayList;
 
+import com.skysoft.pixelarray.editor.model.PathWrapper;
+
 public class EditorView extends FrameLayout {
-    private int width = 16;
-    private int height = 16;
+    private int width = 128;
+    private int height = 128;
+    private int brushSize = 1;
     private float scale;
-    
+   
     private Paint paint;
     private Bitmap bitmap;
     private BitmapDrawable drawable;
@@ -92,7 +96,7 @@ public class EditorView extends FrameLayout {
     });
     
     private class CanvasView extends View {
-        private List<Path> paths;
+        private List<PathWrapper> paths;
         
         private CanvasView(Context context) {
             super(context);
@@ -100,9 +104,9 @@ public class EditorView extends FrameLayout {
             paths = new ArrayList<>();
         }
 
-        Path next;
-        float lastX;
-        float lastY;
+        float startX;
+        float startY;
+        PathWrapper nextPath;
         
         @Override
         public boolean onTouchEvent(MotionEvent event) {
@@ -111,20 +115,27 @@ public class EditorView extends FrameLayout {
             
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN: {
-                    next = new Path();
-                    next.moveTo(x, y);
-                    next.lineTo(x, y);
-                    paths.add(next);
+                    startX = x;
+                    startY = y;
+                    nextPath = new PathWrapper(new Path(), brushSize, Color.BLACK, true);
+                    nextPath.getPath().moveTo(x, y);
+                    paths.add(nextPath);
                     break;
                 }
                 
                 case MotionEvent.ACTION_MOVE: {
-                    next.lineTo(x, y);
+                    nextPath.getPath().lineTo(x, y);
+                    break;
+                }
+                
+                case MotionEvent.ACTION_UP: {
+                    if (Math.abs(x - startX) <= 1 && Math.abs(y - startY) <= 1) {
+                        nextPath.setIsStroke(false);
+                        nextPath.getPath().addRect(x, y, x+1, y+1, Path.Direction.CW);
+                    }
                 }
             }
             
-            lastX = x;
-            lastY = y;
             invalidate();
             return super.onTouchEvent(event);
         }
@@ -134,12 +145,12 @@ public class EditorView extends FrameLayout {
             super.onDraw(canvas);
             
             myCanvas.drawARGB(255, 255, 255, 255);
-            paint.setARGB(255, 0, 0, 0);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(1);
             
-            for (Path p : paths) {
-                myCanvas.drawPath(p, paint);
+            for (PathWrapper path : paths) {
+                paint.setColor(path.getColor());
+                paint.setStyle(path.isStroke() ? Paint.Style.STROKE : Paint.Style.FILL);
+                paint.setStrokeWidth(path.getWidth());
+                myCanvas.drawPath(path.getPath(), paint);
             }
             
             drawable.setBounds(0, 0, getWidth(), getHeight());
