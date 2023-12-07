@@ -108,7 +108,7 @@ public class EditorView extends FrameLayout {
     
     private class CanvasView extends View {
 
-        private List<PathWrapper> paths;
+        public List<PathWrapper> paths;
         private PathWrapper nextPath;
         
         private CanvasView(Context context) {
@@ -150,6 +150,8 @@ public class EditorView extends FrameLayout {
             }
             
             invalidate();
+            
+            
             return super.onTouchEvent(event);
         }
 
@@ -181,6 +183,8 @@ public class EditorView extends FrameLayout {
             drawable.setBounds(0, 0, getWidth(), getHeight());
             drawable.draw(canvas);
         }
+        
+        
     }
     
     public void setEditorMode(EditorMode editorMode) {
@@ -193,5 +197,11 @@ public class EditorView extends FrameLayout {
    
    public void setColor(int a, int r, int g, int b) {
        color = Color.argb(a,r,g,b);
+   }
+   
+   public void clearBitmap() {
+       bitmap.eraseColor(Color.TRANSPARENT);
+       invalidate();
+       canvasView.paths.clear();
    }
 }

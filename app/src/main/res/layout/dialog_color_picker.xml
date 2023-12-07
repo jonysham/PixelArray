@@ -27,7 +27,8 @@
 		android:layout_marginTop="30dp"
 		android:layout_marginStart="20dp"
 		android:layout_marginEnd="20dp"
-		android:id="@+id/seek_bar_red"/>
+		android:id="@+id/seek_bar_red"
+        android:progressTint="#FFFF0000"/>
 
 	<SeekBar
 		android:layout_width="match_parent"
@@ -35,7 +36,8 @@
 		android:layout_marginTop="30dp"
 		android:layout_marginStart="20dp"
 		android:layout_marginEnd="20dp"
-		android:id="@+id/seek_bar_green"/>
+		android:id="@+id/seek_bar_green"
+        android:progressTint="#FF00FF00"/>
 
 	<SeekBar
 		android:layout_width="match_parent"
@@ -43,7 +45,8 @@
 		android:layout_marginTop="30dp"
 		android:layout_marginStart="20dp"
 		android:layout_marginEnd="20dp"
-		android:id="@+id/seek_bar_blue"/>
+		android:id="@+id/seek_bar_blue"
+        android:progressTint="#FF0000DF"/>
 
 	<Button
 		android:layout_width="wrap_content"

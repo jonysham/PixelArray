@@ -29,9 +29,11 @@ public class EditorActivity extends AppCompatActivity implements View.OnClickLis
         
         ImageButton btnDrawErase = findViewById(R.id.btn_drawErase);
         ImageButton btnColorPicker = findViewById(R.id.btn_color_picker);
+        ImageButton btnClear = findViewById(R.id.btn_clear);
         
         btnDrawErase.setOnClickListener(this);
         btnColorPicker.setOnClickListener(this);
+        btnClear.setOnClickListener(this);
     }
 
     @Override
@@ -53,6 +55,10 @@ public class EditorActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.btn_color_picker: {
                 showDialog(DIALOG);
                 break;
+            }
+            
+            case R.id.btn_clear: {
+                editorView.clearBitmap();
             }
         }
     }

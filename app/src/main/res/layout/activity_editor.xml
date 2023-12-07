@@ -20,12 +20,13 @@
 			android:id="@+id/btn_drawErase"
 			android:layout_width="40dp"
 			android:layout_height="40dp"
-			android:layout_alignParentRight="true"
+			android:layout_alignParentRight="false"
 			android:scaleType="fitCenter"
 			android:padding="5dp"
 			android:tint="#ffffff"
 			android:src="@drawable/ic_brush"
-			android:background="?attr/selectableItemBackgroundBorderless"/>
+			android:background="?attr/selectableItemBackgroundBorderless"
+			android:layout_centerHorizontal="true"/>
 
 		<ImageButton
 			android:layout_width="40dp"
@@ -33,6 +34,14 @@
 			android:layout_height="40dp"
 			android:src="@drawable/ic_palette"
 			android:id="@+id/btn_color_picker"/>
+
+		<ImageButton
+			android:layout_width="40dp"
+			style="?android:attr/buttonBarButtonStyle"
+			android:layout_height="40dp"
+			android:src="@drawable/ic_autorenew"
+			android:id="@+id/btn_clear"
+			android:layout_alignParentRight="true"/>
 
 	</RelativeLayout>
 
