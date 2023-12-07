@@ -107,6 +107,7 @@
 # view AndroidManifest.xml #generated:20
 -keep class com.skysoft.pixelarray.activity.EditorActivity { <init>(...); }
 
+# view res/layout/activity_editor.xml #generated:48
 # view res/layout/activity_editor.xml #generated:8
 -keep class com.skysoft.pixelarray.editor.EditorView { <init>(...); }
 

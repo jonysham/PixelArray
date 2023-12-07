@@ -4603,7 +4603,7 @@ containing a value of this type.
         public static final int beginning=0x7f09005c;
         public static final int blocking=0x7f09004f;
         public static final int bottom=0x7f090030;
-        public static final int btn_clear=0x7f0900a0;
+        public static final int btn_clear_canvas=0x7f0900a0;
         public static final int btn_color_picker=0x7f09009f;
         public static final int btn_color_picker_apply=0x7f0900b1;
         public static final int btn_drawErase=0x7f09009e;

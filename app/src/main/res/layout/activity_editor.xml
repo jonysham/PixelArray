@@ -40,7 +40,7 @@
 			style="?android:attr/buttonBarButtonStyle"
 			android:layout_height="40dp"
 			android:src="@drawable/ic_autorenew"
-			android:id="@+id/btn_clear"
+			android:id="@+id/btn_clear_canvas"
 			android:layout_alignParentRight="true"/>
 
 	</RelativeLayout>
